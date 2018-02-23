@@ -30,7 +30,9 @@ namespace DotaDiscordHook
         static List<string> DisabledTypes = new List<string>();
         static List<string> DisabledUsers = new List<string>();
         static List<string> EnabledUsers = new List<string>();
+        static List<string> MangoByteUsers = new List<string>();
         static bool enabledOnly = false;
+        static bool mangoByteOnly = false;
 
         private static bool ProcessCommand(DotaChatHook.ChatMessage dotaChat)
         {
@@ -55,16 +57,27 @@ namespace DotaDiscordHook
                 case "#unmute":
                     if (splitMessage.Length < 2)
                         return false;
+                    DisabledUsers.Remove(splitMessage[1]);
                     EnabledUsers.Add(splitMessage[1]);
                     break;
                 case "#enabledonlymode":
                     enabledOnly = true;
                     break;
+                case "#mangomode":
+                    mangoByteOnly = true;
+                    break;
+                case "#mangouser":
+                    if (splitMessage.Length < 2)
+                        return false;
+                    MangoByteUsers.Add(splitMessage[1]);
+                    break;
                 case "#clear":
                     DisabledTypes.Clear();
                     DisabledUsers.Clear();
                     EnabledUsers.Clear();
+                    MangoByteUsers.Clear();
                     enabledOnly = false;
+                    mangoByteOnly = false;
                     break;
                 default:
                     return false;
@@ -92,6 +105,14 @@ namespace DotaDiscordHook
             
         }
 
+        public static DiscordMessage ModifySend(DotaChatHook.ChatMessage dotaChat)
+        {
+            if(MangoByteUsers.Contains(dotaChat.Username) || mangoByteOnly)
+                return new DiscordMessage() { content = "?smarttts " + dotaChat.Message, tts = false, username = dotaChat.Username };
+            else
+                return new DiscordMessage() { content = dotaChat.Message, tts = true, username = dotaChat.Username };
+        }
+
         public static void Send(DotaChatHook.ChatMessage dotaChat)
         {
             if (ProcessCommand(dotaChat))
@@ -100,7 +121,7 @@ namespace DotaDiscordHook
             if (DoNotSend(dotaChat))
                 return;
 
-            var discordmessage = new DiscordMessage() { content = dotaChat.Message, tts = true, username = dotaChat.Username };
+            var discordmessage = ModifySend(dotaChat);
             using (var client = new HttpClient())
             {
                 client.Timeout = new TimeSpan(0, 1, 0, 0);

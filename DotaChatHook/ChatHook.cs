@@ -83,6 +83,7 @@ namespace DotaChatHook
 
         unsafe public void Run(EasyHook.RemoteHooking.IContext context, string channelName)
         {
+            string s = dllpurpose;
             int id = EasyHook.RemoteHooking.GetCurrentProcessId();
             _server.HookIsInstalled(id);
             EasyHook.LocalHook chatMessageFunctionHook = null;
@@ -202,12 +203,12 @@ namespace DotaChatHook
         }
 
 
-        public const string dllpurpose = "not a hack!";
+        public const string dllpurpose = "not a hack!(https://github.com/neerajanil/DotaChatToDiscord/)";
         unsafe Int64 MyDotaChatFunction(void* a1, void* a2)
         {
             //Native.MessageBeep((uint)Native.BeepType.Asterisk);
+            string s = dllpurpose;
             DotaMessage chat = *(DotaMessage*)a2;
-
             string type = Marshal.PtrToStringAnsi((IntPtr)chat.type);
             string username = Marshal.PtrToStringAnsi((IntPtr)chat.username);
             string message = "";

@@ -31,6 +31,7 @@ namespace DotaDiscordHook
         static List<string> DisabledUsers = new List<string>();
         static List<string> EnabledUsers = new List<string>();
         static List<string> MangoByteUsers = new List<string>();
+        static Dictionary<string, string> DiscordUserName = new Dictionary<string, string>();
         static bool enabledOnly = false;
         static bool mangoByteOnly = false;
 
@@ -46,8 +47,14 @@ namespace DotaDiscordHook
                 case "#muteallchat":
                     DisabledTypes.Add("DOTA_Chat_All");
                     break;
+                case "#unmuteallchat":
+                    DisabledTypes.Remove("DOTA_Chat_All");
+                    break;
                 case "#muteteamchat":
                     DisabledTypes.Add("DOTA_Chat_Team");
+                    break;
+                case "#unmuteteamchat":
+                    DisabledTypes.Remove("DOTA_Chat_Team");
                     break;
                 case "#mute":
                     if (splitMessage.Length < 2)
@@ -60,22 +67,42 @@ namespace DotaDiscordHook
                     DisabledUsers.Remove(splitMessage[1]);
                     EnabledUsers.Add(splitMessage[1]);
                     break;
+                case "#voiceusername":
+                    if (splitMessage.Length < 2)
+                        return false;
+                    if (splitMessage.Length < 3)
+                        DiscordUserName.Add(dotaChat.Username, splitMessage[1]);
+                    else
+                        DiscordUserName.Add(splitMessage[1], splitMessage[2]);
+                    break;
                 case "#enabledonlymode":
-                    enabledOnly = true;
+                    enabledOnly = !enabledOnly;
                     break;
                 case "#mangomode":
-                    mangoByteOnly = true;
+                    mangoByteOnly = !mangoByteOnly;
                     break;
-                case "#mangouser":
+                case "#mango":
                     if (splitMessage.Length < 2)
                         return false;
                     MangoByteUsers.Add(splitMessage[1]);
+                    break;
+                case "#unmango":
+                    if (splitMessage.Length < 2)
+                        return false;
+                    MangoByteUsers.Remove(splitMessage[1]);
+                    break;
+                case "#pure":
+                    if (splitMessage.Length < 2)
+                        return false;
+                    var discordMessage = new DiscordMessage() { content = splitMessage[1], tts = false, username = dotaChat.Username};
+                    Send(discordMessage);
                     break;
                 case "#clear":
                     DisabledTypes.Clear();
                     DisabledUsers.Clear();
                     EnabledUsers.Clear();
                     MangoByteUsers.Clear();
+                    DiscordUserName.Clear();
                     enabledOnly = false;
                     mangoByteOnly = false;
                     break;
@@ -107,10 +134,14 @@ namespace DotaDiscordHook
 
         public static DiscordMessage ModifySend(DotaChatHook.ChatMessage dotaChat)
         {
-            if(MangoByteUsers.Contains(dotaChat.Username) || mangoByteOnly)
-                return new DiscordMessage() { content = "?smarttts " + dotaChat.Message, tts = false, username = dotaChat.Username };
+            string username = (DiscordUserName.ContainsKey(dotaChat.Username) ? DiscordUserName[dotaChat.Username] : dotaChat.Username);
+            if (MangoByteUsers.Contains(dotaChat.Username) || mangoByteOnly)
+            {
+                string mangoMessage = "?smarttts " + (dotaChat.Message.StartsWith("?") ? dotaChat.Message.Substring(1) : username + " said " + dotaChat.Message);
+                return new DiscordMessage() { content = mangoMessage, tts = false, username = dotaChat.Username };
+            }
             else
-                return new DiscordMessage() { content = dotaChat.Message, tts = true, username = dotaChat.Username };
+                return new DiscordMessage() { content = dotaChat.Message, tts = true, username = username };
         }
 
         public static void Send(DotaChatHook.ChatMessage dotaChat)
@@ -122,6 +153,11 @@ namespace DotaDiscordHook
                 return;
 
             var discordmessage = ModifySend(dotaChat);
+            Send(discordmessage);
+        }
+
+        public static void Send(DiscordMessage discordmessage)
+        {
             using (var client = new HttpClient())
             {
                 client.Timeout = new TimeSpan(0, 1, 0, 0);

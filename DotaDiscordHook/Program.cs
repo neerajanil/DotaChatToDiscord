@@ -1,41 +1,13 @@
 ﻿using System;
-using System.Configuration;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
+
 
 namespace DotaDiscordHook
 {
     class Program
     {
-        static string _hookUrl = null;
-        static string HookUrl
-        {
-            get {
-                if (_hookUrl == null)
-                {
-                    _hookUrl = ConfigurationManager.AppSettings["DiscordWebHookUri"];
-                    Uri hookUri = new Uri(HookUrl);
-                }
-                return _hookUrl;
-            }
-        }
-        static void CallDiscord(DotaChatHook.ChatMessage dotaChat)
-        {
-            var discordmessage = new DiscordMessage() { content = dotaChat.Message, tts = true, username = dotaChat.Username };
-            using (var client = new HttpClient())
-            {
-                client.Timeout = new TimeSpan(0, 1, 0, 0);
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                var body = new StringContent(Jil.JSON.Serialize<DiscordMessage>(discordmessage));
-                body.Headers.ContentType.MediaType = "application/json";
-                client.PostAsync(HookUrl, body).Wait();
-            }
-        }
-
-
+        
         static void Main(string[] args)
         {
             int targetPID = 0;
@@ -59,7 +31,7 @@ namespace DotaDiscordHook
             string injectionLibrary = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "DotaChatHook.dll");
             string channelName = null;
             // Create the IPC server using the FileMonitorIPC.ServiceInterface class as a singleton
-            var server = EasyHook.RemoteHooking.IpcCreateServer<DotaChatHook.ServerInterface>(ref channelName, System.Runtime.Remoting.WellKnownObjectMode.Singleton, new DotaChatHook.ServerInterface(CallDiscord));
+            var server = EasyHook.RemoteHooking.IpcCreateServer<DotaChatHook.ServerInterface>(ref channelName, System.Runtime.Remoting.WellKnownObjectMode.Singleton, new DotaChatHook.ServerInterface(Discord.Send));
             
             // inject into existing process
             EasyHook.RemoteHooking.Inject(

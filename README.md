@@ -4,12 +4,12 @@ Forward chat inside dota game into Discord with text to speech enabled.
 **Disclamer**: Only tested on Dota 64bit. Also it uses hooking so not guaranteed to be VAC safe.
 
 ## Commands
-\#muteallchat
-\#muteteamchat
-\#mute:playername
-\#unmute:playername
-\#enabledonlymode
-\#clear
+\#muteallchat  
+\#muteteamchat  
+\#mute:playername  
+\#unmute:playername  
+\#enabledonlymode  
+\#clear  
 
 ## How does it work
 It uses EasyHook library to inject DotaChatHook.dll into dota. DotaChatHook.dll then installs a local hook into the function in client.dll which is called when in game chat is received. The new function uses IPC to call the main console and the procceeds with the original function.

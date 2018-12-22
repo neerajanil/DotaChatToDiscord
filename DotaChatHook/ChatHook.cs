@@ -79,7 +79,7 @@ namespace DotaChatHook
         }
 
 
-        readonly static byte[] messageSignature = { 0x40, 0x55, 0x41, 0x57, 0x48, 0x8d, 0xAC, 0x24, 0x78, 0xEF, 0xFF, 0xFF, 0xB8, 0x88, 0x11, 0x00, 0x00 };
+        readonly static byte[] messageSignature = { 0x40, 0x55, 0x41, 0x57, 0x48, 0x8d, 0xac, 0x24, 0x98, 0xfd, 0xff, 0xff, 0x48, 0x81, 0xec, 0x68 };
 
         unsafe public void Run(EasyHook.RemoteHooking.IContext context, string channelName)
         {
@@ -187,7 +187,6 @@ namespace DotaChatHook
             public IntPtr padding;
             public IntPtr padding1;
             public IntPtr padding2;
-            public IntPtr padding3;
             public char* type;
             public char* username;
             public InnerMessage* innermessage;
